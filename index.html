@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ATG Core Genomics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream: #F7F5F0; --white: #FFFFFF; --ink: #0D1B2A; --ink-light: #3A4A5C;
+      --accent: #1A6B5A; --accent-light: #D4EDE8; --accent-mid: #2D9E84;
+      --rule: #E0DDD7; --serif: 'DM Serif Display', Georgia, serif; --sans: 'DM Sans', system-ui, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); background: var(--cream); color: var(--ink); overflow-x: hidden; }
+
+    /* LANG BAR */
+    .lang-bar {
+      background: var(--ink); display: flex; justify-content: flex-end; align-items: center;
+      padding: 0.45rem 4rem; gap: 0.6rem;
+    }
+    .lang-bar-label { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+    .lang-btn {
+      background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 2rem;
+      padding: 0.22rem 0.8rem; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; font-family: var(--sans); transition: all 0.2s; color: rgba(255,255,255,0.55);
+    }
+    .lang-btn.active { background: var(--accent-mid); border-color: var(--accent-mid); color: #fff; }
+    .lang-btn:hover:not(.active) { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 4rem; background: rgba(247,245,240,0.92);
+      backdrop-filter: blur(12px); border-bottom: 1px solid var(--rule);
+    }
+    .nav-logo { display: flex; align-items: baseline; gap: 0.5rem; }
+    .nav-logo .atg { font-family: var(--serif); font-size: 1.35rem; color: var(--accent); letter-spacing: 0.04em; }
+    .nav-logo .core { font-size: 0.78rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-light); }
+    nav ul { list-style: none; display: flex; gap: 2.5rem; }
+    nav ul a { text-decoration: none; font-size: 0.85rem; font-weight: 400; letter-spacing: 0.06em; color: var(--ink-light); transition: color 0.2s; }
+    nav ul a:hover { color: var(--accent); }
+    .nav-cta { background: var(--accent); color: #fff !important; padding: 0.5rem 1.3rem; border-radius: 2rem; font-weight: 500 !important; }
+    .nav-cta:hover { background: var(--accent-mid) !important; color: #fff !important; }
+
+    /* HERO */
+    #hero { min-height: calc(100vh - 36px); display: grid; grid-template-columns: 1fr 1fr; position: relative; overflow: hidden; }
+    .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 6rem 3rem 6rem 4rem; }
+    .hero-eyebrow { display: flex; align-items: center; gap: 0.8rem; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 500; margin-bottom: 2rem; opacity: 0; animation: fadeUp 0.8s 0.2s forwards; }
+    .hero-eyebrow::before { content: ''; display: block; width: 32px; height: 1px; background: var(--accent); }
+    .hero-h1 { font-family: var(--serif); font-size: clamp(2.8rem, 4.5vw, 4.2rem); line-height: 1.1; color: var(--ink); margin-bottom: 1.6rem; opacity: 0; animation: fadeUp 0.8s 0.35s forwards; }
+    .hero-h1 em { font-style: italic; color: var(--accent); }
+    .hero-sub { font-size: 1.05rem; line-height: 1.7; color: var(--ink-light); max-width: 480px; margin-bottom: 2.8rem; opacity: 0; animation: fadeUp 0.8s 0.5s forwards; }
+    .hero-actions { display: flex; gap: 1rem; align-items: center; opacity: 0; animation: fadeUp 0.8s 0.65s forwards; }
+    .btn-primary { background: var(--accent); color: #fff; padding: 0.85rem 2rem; border-radius: 2rem; font-size: 0.9rem; font-weight: 500; text-decoration: none; transition: background 0.2s, transform 0.2s; display: inline-block; }
+    .btn-primary:hover { background: var(--accent-mid); transform: translateY(-1px); }
+    .btn-ghost { color: var(--ink); font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid currentColor; padding-bottom: 1px; transition: color 0.2s; }
+    .btn-ghost:hover { color: var(--accent); }
+    .hero-right { position: relative; display: flex; align-items: center; justify-content: center; padding: 4rem 2rem; }
+    .dna-wrap { position: relative; width: 340px; height: 520px; opacity: 0; animation: fadeIn 1.2s 0.5s forwards; }
+    .dna-bg { position: absolute; inset: -40px; background: radial-gradient(ellipse at center, var(--accent-light) 0%, transparent 70%); border-radius: 50%; }
+    svg.dna { width: 100%; height: 100%; }
+    .stats-bar { grid-column: 1 / -1; display: flex; border-top: 1px solid var(--rule); background: var(--white); opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
+    .stat { flex: 1; padding: 2rem 2.5rem; border-right: 1px solid var(--rule); }
+    .stat:last-child { border-right: none; }
+    .stat-num { font-family: var(--serif); font-size: 2.2rem; color: var(--accent); display: block; }
+    .stat-label { font-size: 0.8rem; color: var(--ink-light); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 0.2rem; }
+
+    /* SECTION BASE */
+    section { padding: 6rem 4rem; }
+    .section-label { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); font-weight: 500; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.7rem; }
+    .section-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .section-title { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); line-height: 1.15; color: var(--ink); max-width: 640px; margin-bottom: 1.2rem; }
+    .section-body { font-size: 1rem; line-height: 1.75; color: var(--ink-light); max-width: 600px; }
+
+    /* ABOUT */
+    #about { background: var(--white); display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+    .about-visual { position: relative; }
+    .about-card { background: var(--cream); border: 1px solid var(--rule); border-radius: 1.2rem; padding: 2.5rem; position: relative; overflow: hidden; }
+    .about-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-mid)); }
+    .about-card-title { font-family: var(--serif); font-size: 1.3rem; margin-bottom: 1rem; color: var(--ink); }
+    .pillar-list { list-style: none; }
+    .pillar-list li { padding: 0.75rem 0; border-bottom: 1px solid var(--rule); display: flex; align-items: center; gap: 0.9rem; font-size: 0.95rem; color: var(--ink-light); }
+    .pillar-list li:last-child { border-bottom: none; }
+    .pillar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+    .about-badge { position: absolute; bottom: -1.5rem; right: 2rem; background: var(--accent); color: #fff; border-radius: 1rem; padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 500; box-shadow: 0 8px 24px rgba(26,107,90,0.25); }
+    .mission-quote { margin-top: 2.5rem; padding: 1.8rem 2rem; border-left: 3px solid var(--accent); background: var(--accent-light); border-radius: 0 0.75rem 0.75rem 0; font-family: var(--serif); font-size: 1.15rem; line-height: 1.6; color: var(--ink); font-style: italic; }
+
+    /* SERVICES */
+    #services { background: var(--cream); }
+    .services-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-bottom: 4rem; align-items: end; }
+    .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .service-card { background: var(--white); border: 1px solid var(--rule); border-radius: 1rem; padding: 2rem; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; cursor: default; }
+    .service-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(13,27,42,0.08); border-color: var(--accent-light); }
+    .service-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; margin-bottom: 1.4rem; font-size: 1.3rem; }
+    .service-name { font-family: var(--serif); font-size: 1.15rem; margin-bottom: 0.7rem; color: var(--ink); }
+    .service-desc { font-size: 0.88rem; line-height: 1.65; color: var(--ink-light); }
+    .service-tag { display: inline-block; margin-top: 1.2rem; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+
+    /* CONTACT */
+    #contact { background: var(--ink); color: var(--white); display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; }
+    #contact .section-label { color: var(--accent-mid); }
+    #contact .section-label::before { background: var(--accent-mid); }
+    #contact .section-title { color: var(--white); max-width: 100%; }
+    #contact .section-body { color: rgba(255,255,255,0.6); }
+    .contact-form { display: flex; flex-direction: column; gap: 1.2rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-field label { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+    .form-field input, .form-field textarea, .form-field select { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 0.6rem; padding: 0.8rem 1rem; color: var(--white); font-family: var(--sans); font-size: 0.92rem; transition: border-color 0.2s; outline: none; width: 100%; }
+    .form-field input::placeholder, .form-field textarea::placeholder { color: rgba(255,255,255,0.25); }
+    .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--accent-mid); }
+    .form-field textarea { resize: vertical; min-height: 110px; }
+    .form-field select option { background: var(--ink); }
+    .btn-submit { background: var(--accent-mid); color: #fff; border: none; padding: 0.95rem 2.2rem; border-radius: 2rem; font-size: 0.92rem; font-weight: 500; cursor: pointer; font-family: var(--sans); transition: background 0.2s, transform 0.2s; align-self: flex-start; }
+    .btn-submit:hover { background: var(--accent); transform: translateY(-1px); }
+    .contact-info { margin-top: 3rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .contact-item { display: flex; gap: 1rem; align-items: flex-start; }
+    .contact-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .contact-item-label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.2rem; }
+    .contact-item-val { font-size: 0.95rem; color: rgba(255,255,255,0.85); }
+
+    /* FOOTER */
+    footer { background: #080F17; color: rgba(255,255,255,0.35); padding: 2rem 4rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); }
+    footer .footer-logo { font-family: var(--serif); color: rgba(255,255,255,0.5); font-size: 1rem; }
+    footer a { color: rgba(255,255,255,0.35); text-decoration: none; }
+    footer a:hover { color: var(--accent-mid); }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s, transform 0.7s; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .lang-bar { padding: 0.45rem 1.5rem; }
+      nav { padding: 1.2rem 2rem; }
+      nav ul { display: none; }
+      #hero { grid-template-columns: 1fr; }
+      .hero-right { display: none; }
+      .stats-bar { flex-direction: column; }
+      .stat { border-right: none; border-bottom: 1px solid var(--rule); }
+      section { padding: 4rem 2rem; }
+      #about, #contact { grid-template-columns: 1fr; gap: 3rem; }
+      .services-intro { grid-template-columns: 1fr; gap: 2rem; }
+      .services-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LANGUAGE BAR -->
+<div class="lang-bar">
+  <span class="lang-bar-label" id="lang-label-text">Language:</span>
+  <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" id="btn-es" onclick="setLang('es')">ES</button>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span class="atg">ATG</span>
+    <span class="core">Core Genomics</span>
+  </div>
+  <ul>
+    <li><a href="#about" data-i18n="nav-about">About</a></li>
+    <li><a href="#services" data-i18n="nav-services">Services</a></li>
+    <li><a href="#contact" class="nav-cta" data-i18n="nav-contact">Contact Us</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow" data-i18n="hero-eyebrow">Clinical Genomics</div>
+    <h1 class="hero-h1">
+      <span data-i18n="hero-h1-line1">Decoding genomes.</span><br>
+      <em data-i18n="hero-h1-line2">Informing care.</em>
+    </h1>
+    <p class="hero-sub" data-i18n="hero-sub">ATG Core Genomics delivers precision genomic sequencing and expert variant interpretation — translating complex genetic data into clear, actionable insights for clinicians and hospitals.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary" data-i18n="hero-cta1">Request a Consult</a>
+      <a href="#services" class="btn-ghost" data-i18n="hero-cta2">Our Services →</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="dna-wrap">
+      <div class="dna-bg"></div>
+      <svg class="dna" viewBox="0 0 340 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g1" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#1A6B5A;stop-opacity:0.8"/>
+            <stop offset="100%" style="stop-color:#2D9E84;stop-opacity:0.4"/>
+          </linearGradient>
+        </defs>
+        <path d="M 100 20 C 60 80, 60 140, 100 180 C 140 220, 140 280, 100 320 C 60 360, 60 420, 100 460 C 130 490, 140 500, 100 520" fill="none" stroke="url(#g1)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 240 20 C 280 80, 280 140, 240 180 C 200 220, 200 280, 240 320 C 280 360, 280 420, 240 460 C 210 490, 200 500, 240 520" fill="none" stroke="url(#g1)" stroke-width="3" stroke-linecap="round"/>
+        <g stroke="#1A6B5A" stroke-width="1.8" stroke-linecap="round" opacity="0.6">
+          <line x1="107" y1="44" x2="233" y2="44"/><line x1="90" y1="80" x2="250" y2="80"/>
+          <line x1="76" y1="116" x2="264" y2="116"/><line x1="78" y1="152" x2="262" y2="152"/>
+          <line x1="100" y1="180" x2="240" y2="180"/><line x1="122" y1="210" x2="218" y2="210"/>
+          <line x1="136" y1="244" x2="204" y2="244"/><line x1="136" y1="276" x2="204" y2="276"/>
+          <line x1="122" y1="310" x2="218" y2="310"/><line x1="100" y1="322" x2="240" y2="322"/>
+          <line x1="78" y1="352" x2="262" y2="352"/><line x1="76" y1="390" x2="264" y2="390"/>
+          <line x1="90" y1="426" x2="250" y2="426"/><line x1="107" y1="460" x2="233" y2="460"/>
+        </g>
+        <g fill="#2D9E84" opacity="0.9">
+          <circle cx="100" cy="180" r="5"/><circle cx="240" cy="180" r="5"/>
+          <circle cx="100" cy="320" r="5"/><circle cx="240" cy="320" r="5"/>
+        </g>
+        <g font-family="DM Sans, sans-serif" font-size="10" fill="#1A6B5A" opacity="0.5">
+          <text x="155" y="42">A — T</text><text x="155" y="115">G — C</text>
+          <text x="155" y="244">T — A</text><text x="155" y="390">C — G</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-num">98.9%</span><span class="stat-label" data-i18n="stat1">Variant Call Accuracy</span></div>
+    <div class="stat"><span class="stat-num">72 hr</span><span class="stat-label" data-i18n="stat2">Turnaround (STAT)</span></div>
+    <div class="stat"><span class="stat-num">WGS + WES</span><span class="stat-label" data-i18n="stat3">Full-Spectrum Sequencing</span></div>
+    <div class="stat"><span class="stat-num">ISO 15189</span><span class="stat-label" data-i18n="stat4">Accredited Laboratory</span></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-content reveal">
+    <div class="section-label" data-i18n="about-label">About ATG</div>
+    <h2 class="section-title" data-i18n="about-title">Where molecular precision meets clinical clarity.</h2>
+    <p class="section-body" data-i18n="about-body">Founded by genomics scientists and clinical specialists, ATG Core Genomics bridges the gap between cutting-edge sequencing technology and the everyday diagnostic needs of clinicians. We believe that genetic insight should be fast, interpretable, and immediately usable at the point of care.</p>
+    <blockquote class="mission-quote" data-i18n="about-quote">Our mission: make genomic medicine accessible — not just to research labs, but to every clinician making decisions for their patients.</blockquote>
+  </div>
+  <div class="about-visual reveal" style="transition-delay:0.15s">
+    <div class="about-card">
+      <div class="about-card-title" data-i18n="about-card-title">Our Core Principles</div>
+      <ul class="pillar-list">
+        <li><span class="pillar-dot"></span><span data-i18n="p1">Clinical-grade accuracy in every report</span></li>
+        <li><span class="pillar-dot"></span><span data-i18n="p2">Interpretations written for clinicians, not researchers</span></li>
+        <li><span class="pillar-dot"></span><span data-i18n="p3">Rapid turnaround without compromising rigour</span></li>
+        <li><span class="pillar-dot"></span><span data-i18n="p4">Direct genomicist support for complex cases</span></li>
+        <li><span class="pillar-dot"></span><span data-i18n="p5">Secure, HIPAA-compliant data handling</span></li>
+        <li><span class="pillar-dot"></span><span data-i18n="p6">Continuous pipeline validation and QC</span></li>
+      </ul>
+    </div>
+    <div class="about-badge" data-i18n="about-badge">Clinician-First Reports</div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-intro">
+    <div class="reveal">
+      <div class="section-label" data-i18n="svc-label">Services</div>
+      <h2 class="section-title" data-i18n="svc-title">Comprehensive genomic services for clinical practice.</h2>
+    </div>
+    <p class="section-body reveal" style="transition-delay:0.1s" data-i18n="svc-body">From whole-genome sequencing to pre-implantation analysis, our services integrate seamlessly into your clinical workflow — with structured, interpretable reports delivered directly to your team.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card reveal">
+      <div class="service-icon">🧬</div>
+      <div class="service-name" data-i18n="s1-name">Whole Genome Sequencing</div>
+      <p class="service-desc" data-i18n="s1-desc">Comprehensive 30× coverage WGS with variant annotation across SNVs, indels, CNVs, and structural variants. Ideal for rare disease workup.</p>
+      <span class="service-tag" data-i18n="s1-tag">Rare Disease · Undiagnosed</span>
+    </div>
+    <div class="service-card reveal" style="transition-delay:0.1s">
+      <div class="service-icon">🔬</div>
+      <div class="service-name" data-i18n="s2-name">Whole Exome Sequencing</div>
+      <p class="service-desc" data-i18n="s2-desc">High-depth exome sequencing focused on coding regions, with phenotype-matched variant prioritization and ACMG-classified reports.</p>
+      <span class="service-tag" data-i18n="s2-tag">Diagnostics · Oncology</span>
+    </div>
+    <div class="service-card reveal" style="transition-delay:0.15s">
+      <div class="service-icon">🎯</div>
+      <div class="service-name" data-i18n="s3-name">Targeted Gene Panels</div>
+      <p class="service-desc" data-i18n="s3-desc">Curated panels for cardiology, neurology, oncology, and rare disease — ultra-deep coverage with rapid TAT for time-sensitive cases.</p>
+      <span class="service-tag" data-i18n="s3-tag">Rapid · High Depth</span>
+    </div>
+    <div class="service-card reveal" style="transition-delay:0.2s">
+      <div class="service-icon">🔷</div>
+      <div class="service-name" data-i18n="s4-name">Pre-Implantation Variant Analysis</div>
+      <p class="service-desc" data-i18n="s4-desc">Genetic testing of embryos prior to IVF implantation, screening for monogenic disorders, chromosomal aneuploidies, and inherited pathogenic variants to support informed reproductive decisions.</p>
+      <span class="service-tag" data-i18n="s4-tag">PGT · Reproductive Medicine</span>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="reveal">
+    <div class="section-label" data-i18n="contact-label">Contact</div>
+    <h2 class="section-title" data-i18n="contact-title">Ready to bring genomics into your clinical workflow?</h2>
+    <p class="section-body" data-i18n="contact-body">Reach out to discuss your sequencing needs, request a sample report, or schedule a call with one of our clinical genomicists.</p>
+    <div class="contact-info">
+      <div class="contact-item">
+        <div class="contact-icon">✉</div>
+        <div><div class="contact-item-label" data-i18n="ci-email-label">Email</div><div class="contact-item-val">clinical@atggenomics.com</div></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">📞</div>
+        <div><div class="contact-item-label" data-i18n="ci-phone-label">Phone</div><div class="contact-item-val">+1 (800) ATG-GENE</div></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">🕐</div>
+        <div><div class="contact-item-label" data-i18n="ci-response-label">Response Time</div><div class="contact-item-val" data-i18n="ci-response-val">Within 1 business day</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="reveal" style="transition-delay:0.15s">
+    <form class="contact-form" onsubmit="handleSubmit(event)">
+      <div class="form-row">
+        <div class="form-field"><label data-i18n="f-firstname">First Name</label><input type="text" id="ph-firstname" placeholder="Dr. Jane"/></div>
+        <div class="form-field"><label data-i18n="f-lastname">Last Name</label><input type="text" id="ph-lastname" placeholder="Smith"/></div>
+      </div>
+      <div class="form-field"><label data-i18n="f-institution">Institution / Hospital</label><input type="text" id="ph-institution" placeholder="General Hospital, Dept. of Neurology"/></div>
+      <div class="form-field"><label data-i18n="f-email">Email</label><input type="email" placeholder="you@hospital.org"/></div>
+      <div class="form-field">
+        <label data-i18n="f-service">Service of Interest</label>
+        <select>
+          <option value="" data-i18n="f-service-default">Select a service…</option>
+          <option data-i18n="s1-name">Whole Genome Sequencing</option>
+          <option data-i18n="s2-name">Whole Exome Sequencing</option>
+          <option data-i18n="s3-name">Targeted Gene Panels</option>
+          <option data-i18n="s4-name">Pre-Implantation Variant Analysis</option>
+          <option data-i18n="f-general">General Enquiry</option>
+        </select>
+      </div>
+      <div class="form-field"><label data-i18n="f-message">Message</label><textarea id="ph-message" placeholder="Tell us about your case or enquiry…"></textarea></div>
+      <button type="submit" class="btn-submit" data-i18n="f-submit">Send Enquiry →</button>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">ATG Core Genomics</div>
+  <div data-i18n="footer-copy">© 2025 ATG Core Genomics. All rights reserved.</div>
+  <div><a href="#" data-i18n="footer-privacy">Privacy Policy</a> &nbsp;·&nbsp; <a href="#" data-i18n="footer-terms">Terms</a></div>
+</footer>
+
+<script>
+const T = {
+  en: {
+    "lang-label":"Language:",
+    "nav-about":"About","nav-services":"Services","nav-contact":"Contact Us",
+    "hero-eyebrow":"Clinical Genomics","hero-h1-line1":"Decoding genomes.","hero-h1-line2":"Informing care.",
+    "hero-sub":"ATG Core Genomics delivers precision genomic sequencing and expert variant interpretation — translating complex genetic data into clear, actionable insights for clinicians and hospitals.",
+    "hero-cta1":"Request a Consult","hero-cta2":"Our Services →",
+    "stat1":"Variant Call Accuracy","stat2":"Turnaround (STAT)","stat3":"Full-Spectrum Sequencing","stat4":"Accredited Laboratory",
+    "about-label":"About ATG","about-title":"Where molecular precision meets clinical clarity.",
+    "about-body":"Founded by genomics scientists and clinical specialists, ATG Core Genomics bridges the gap between cutting-edge sequencing technology and the everyday diagnostic needs of clinicians. We believe that genetic insight should be fast, interpretable, and immediately usable at the point of care.",
+    "about-quote":"Our mission: make genomic medicine accessible — not just to research labs, but to every clinician making decisions for their patients.",
+    "about-card-title":"Our Core Principles",
+    "p1":"Clinical-grade accuracy in every report","p2":"Interpretations written for clinicians, not researchers",
+    "p3":"Rapid turnaround without compromising rigour","p4":"Direct genomicist support for complex cases",
+    "p5":"Secure, HIPAA-compliant data handling","p6":"Continuous pipeline validation and QC",
+    "about-badge":"Clinician-First Reports",
+    "svc-label":"Services","svc-title":"Comprehensive genomic services for clinical practice.",
+    "svc-body":"From whole-genome sequencing to pre-implantation analysis, our services integrate seamlessly into your clinical workflow — with structured, interpretable reports delivered directly to your team.",
+    "s1-name":"Whole Genome Sequencing","s1-desc":"Comprehensive 30× coverage WGS with variant annotation across SNVs, indels, CNVs, and structural variants. Ideal for rare disease workup.","s1-tag":"Rare Disease · Undiagnosed",
+    "s2-name":"Whole Exome Sequencing","s2-desc":"High-depth exome sequencing focused on coding regions, with phenotype-matched variant prioritization and ACMG-classified reports.","s2-tag":"Diagnostics · Oncology",
+    "s3-name":"Targeted Gene Panels","s3-desc":"Curated panels for cardiology, neurology, oncology, and rare disease — ultra-deep coverage with rapid TAT for time-sensitive cases.","s3-tag":"Rapid · High Depth",
+    "s4-name":"Pre-Implantation Variant Analysis","s4-desc":"Genetic testing of embryos prior to IVF implantation, screening for monogenic disorders, chromosomal aneuploidies, and inherited pathogenic variants to support informed reproductive decisions.","s4-tag":"PGT · Reproductive Medicine",
+    "contact-label":"Contact","contact-title":"Ready to bring genomics into your clinical workflow?",
+    "contact-body":"Reach out to discuss your sequencing needs, request a sample report, or schedule a call with one of our clinical genomicists.",
+    "ci-email-label":"Email","ci-phone-label":"Phone","ci-response-label":"Response Time","ci-response-val":"Within 1 business day",
+    "f-firstname":"First Name","f-lastname":"Last Name","f-institution":"Institution / Hospital","f-email":"Email",
+    "f-service":"Service of Interest","f-service-default":"Select a service…","f-general":"General Enquiry",
+    "f-message":"Message","f-submit":"Send Enquiry →",
+    "ph-firstname":"Dr. Jane","ph-lastname":"Smith","ph-institution":"General Hospital, Dept. of Neurology","ph-message":"Tell us about your case or enquiry…",
+    "footer-copy":"© 2025 ATG Core Genomics. All rights reserved.","footer-privacy":"Privacy Policy","footer-terms":"Terms",
+    "sent":"Sent ✓"
+  },
+  es: {
+    "lang-label":"Idioma:",
+    "nav-about":"Nosotros","nav-services":"Servicios","nav-contact":"Contáctenos",
+    "hero-eyebrow":"Genómica Clínica","hero-h1-line1":"Descifrando genomas.","hero-h1-line2":"Orientando la atención.",
+    "hero-sub":"ATG Core Genomics ofrece secuenciación genómica de precisión e interpretación experta de variantes — transformando datos genéticos complejos en información clara y accionable para médicos y hospitales.",
+    "hero-cta1":"Solicitar Consulta","hero-cta2":"Nuestros Servicios →",
+    "stat1":"Precisión en Variantes","stat2":"Tiempo de Respuesta (STAT)","stat3":"Secuenciación Integral","stat4":"Laboratorio Acreditado",
+    "about-label":"Sobre ATG","about-title":"Donde la precisión molecular se une a la claridad clínica.",
+    "about-body":"Fundada por científicos en genómica y especialistas clínicos, ATG Core Genomics cierra la brecha entre la tecnología de secuenciación de vanguardia y las necesidades diagnósticas cotidianas de los médicos. Creemos que la información genética debe ser rápida, interpretable y aplicable en el punto de atención.",
+    "about-quote":"Nuestra misión: hacer que la medicina genómica sea accesible — no solo para laboratorios de investigación, sino para cada médico que toma decisiones por sus pacientes.",
+    "about-card-title":"Nuestros Principios Fundamentales",
+    "p1":"Precisión de grado clínico en cada informe","p2":"Interpretaciones escritas para médicos, no investigadores",
+    "p3":"Entrega rápida sin comprometer el rigor","p4":"Apoyo directo de genomistas para casos complejos",
+    "p5":"Manejo seguro de datos conforme a HIPAA","p6":"Validación continua de pipelines y control de calidad",
+    "about-badge":"Informes Centrados en el Médico",
+    "svc-label":"Servicios","svc-title":"Servicios genómicos integrales para la práctica clínica.",
+    "svc-body":"Desde la secuenciación de genoma completo hasta el análisis preimplantacional, nuestros servicios se integran sin problemas en su flujo clínico — con informes estructurados entregados directamente a su equipo.",
+    "s1-name":"Secuenciación de Genoma Completo","s1-desc":"WGS de cobertura 30× con anotación de variantes en SNVs, indels, CNVs y variantes estructurales. Ideal para el estudio de enfermedades raras.","s1-tag":"Enfermedades Raras · Sin Diagnóstico",
+    "s2-name":"Secuenciación de Exoma Completo","s2-desc":"Secuenciación de exoma de alta profundidad en regiones codificantes, con priorización de variantes por fenotipo e informes clasificados según ACMG.","s2-tag":"Diagnóstico · Oncología",
+    "s3-name":"Paneles de Genes Dirigidos","s3-desc":"Paneles para cardiología, neurología, oncología y enfermedades raras — cobertura ultra-profunda con TAT rápido para casos urgentes.","s3-tag":"Rápido · Alta Profundidad",
+    "s4-name":"Análisis de Variantes Preimplantacional","s4-desc":"Pruebas genéticas de embriones previas a la implantación en FIV, con cribado de trastornos monogénicos, aneuploidías cromosómicas y variantes patogénicas heredadas para apoyar decisiones reproductivas informadas.","s4-tag":"PGT · Medicina Reproductiva",
+    "contact-label":"Contacto","contact-title":"¿Listo para incorporar la genómica a su flujo clínico?",
+    "contact-body":"Contáctenos para hablar sobre sus necesidades de secuenciación, solicitar un informe de muestra o programar una llamada con uno de nuestros genomistas clínicos.",
+    "ci-email-label":"Correo","ci-phone-label":"Teléfono","ci-response-label":"Tiempo de Respuesta","ci-response-val":"En 1 día hábil",
+    "f-firstname":"Nombre","f-lastname":"Apellido","f-institution":"Institución / Hospital","f-email":"Correo Electrónico",
+    "f-service":"Servicio de Interés","f-service-default":"Seleccione un servicio…","f-general":"Consulta General",
+    "f-message":"Mensaje","f-submit":"Enviar Consulta →",
+    "ph-firstname":"Dr. Juan","ph-lastname":"García","ph-institution":"Hospital General, Dept. de Neurología","ph-message":"Cuéntenos sobre su caso o consulta…",
+    "footer-copy":"© 2025 ATG Core Genomics. Todos los derechos reservados.","footer-privacy":"Política de Privacidad","footer-terms":"Términos",
+    "sent":"Enviado ✓"
+  }
+};
+
+let lang = 'en';
+
+function setLang(l) {
+  lang = l;
+  const t = T[l];
+  document.documentElement.lang = l;
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.getElementById('btn-es').classList.toggle('active', l === 'es');
+  document.getElementById('lang-label-text').textContent = t['lang-label'];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (t[k] !== undefined) el.textContent = t[k];
+  });
+  // Placeholders
+  const ph = { 'ph-firstname': '#ph-firstname', 'ph-lastname': '#ph-lastname', 'ph-institution': '#ph-institution', 'ph-message': '#ph-message' };
+  for (const [k, sel] of Object.entries(ph)) {
+    const el = document.querySelector(sel);
+    if (el && t[k]) el.placeholder = t[k];
+  }
+}
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Form
+function handleSubmit(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('.btn-submit');
+  btn.textContent = T[lang]['sent'] || 'Sent ✓';
+  btn.style.background = '#1A6B5A';
+  btn.disabled = true;
+}
+</script>
+</body>
+</html>
